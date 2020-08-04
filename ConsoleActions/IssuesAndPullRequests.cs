@@ -56,13 +56,16 @@ namespace Bam.Net.System.ConsoleActions
                 .Where(NewPullRequestPredicate).ToList();
             if (pullRequestList.Count != 0)
             {
-                foreach (PullRequest issue in pullRequestList)
+                foreach (PullRequest pullRequest in pullRequestList)
                 {
                     Message.PrintLine("\t\t#{0}: Assigned to {1}: Created At {2}", ConsoleColor.White, 
-                        issue.Number,
-                        issue.Assignee?.Login ?? "(Not Assigned)",
-                        FormatDate(issue.CreatedAt));
-                    Message.PrintLine("\t\t\t{0}", ConsoleColor.White, issue.Title);
+                        pullRequest.Number,
+                        pullRequest.Assignee?.Login ?? "(Not Assigned)",
+                        FormatDate(pullRequest.CreatedAt));
+                    Message.PrintLine("\t\t\t{0}", ConsoleColor.White, pullRequest.Title);
+                    Message.PrintLine("\t\t{0}", ConsoleColor.DarkBlue, pullRequest.Url);
+                    Message.PrintLine("\t\t*** Labels ***", ConsoleColor.DarkYellow);
+                    PrintLabels(pullRequest);
                 }
             }
             else
@@ -85,6 +88,9 @@ namespace Bam.Net.System.ConsoleActions
                         issue.Assignee?.Login ?? "(Not Assigned)",
                         FormatDate(issue.CreatedAt));
                     Message.PrintLine("\t\t\t{0}", ConsoleColor.DarkBlue, issue.Title);
+                    Message.PrintLine("\t\t{0}", ConsoleColor.DarkBlue, issue.Url);
+                    Message.PrintLine("\t\t*** Labels ***", ConsoleColor.DarkYellow);
+                    PrintLabels(issue);
                 }
             }
             else
@@ -92,6 +98,30 @@ namespace Bam.Net.System.ConsoleActions
                 Message.PrintLine("\t\tNo new issues for: {0}", ConsoleColor.Yellow, repo);
             }
         }
+
+        private void PrintLabels(PullRequest pullRequest)
+        {
+            PrintLabels(pullRequest.Labels);
+        }
+
+        private void PrintLabels(Issue issue)
+        {
+            PrintLabels(issue.Labels);
+        }
+
+        private void PrintLabels(IEnumerable<Label> labels)
+        {
+            if (labels.Count() == 0)
+            {
+                Message.PrintLine("\t\tNo labels", ConsoleColor.Yellow);
+                return;
+            }
+            foreach (Label label in labels)
+            {
+                Message.PrintLine("\t\t{0}", ConsoleColor.DarkYellow, label.Name);
+            }
+        }
+        
         private bool NewPullRequestPredicate(PullRequest pullRequest)
         {
             DateTime eightDaysAgo = DateTime.Now.Subtract(TimeSpan.FromDays(8));
