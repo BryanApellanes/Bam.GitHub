@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Bam.GitHub;
+using Bam.GitHub.Data;
 using Bam.Net.CommandLine;
 using Octokit;
 
@@ -15,7 +17,7 @@ namespace Bam.Net.System.ConsoleActions
         
         [ConsoleAction]
         public void ShowRateLimit()
-        {
+        {   
             ApiInfo apiInfo = _gitHubClient.GetLastApiInfo();
             // Prior to first API call, this will be null, because it only deals with the last call.
 
@@ -31,12 +33,31 @@ namespace Bam.Net.System.ConsoleActions
         }
         
         [ConsoleAction]
+        public void ListOpenIssuesAndPullRequests()
+        {
+            string githubReposListFile = "github-repos.yml";
+            
+            RepoListDescriptor repoList = BamProfile.LoadYamlData<RepoListDescriptor>(githubReposListFile);
+            
+            foreach (string repo in repoList.Repositories)
+            {
+                Message.PrintLine("**** {0} ****", ConsoleColor.DarkCyan, repo);
+                Repository repository = _gitHubClient.Repository.Get(repoList.Owner, repo).Result;
+                IReadOnlyList<Issue> issues = _gitHubClient.Issue.GetAllForRepository(repository.Id).Result;
+                PrintOpenIssues(repo, issues);
+                IReadOnlyList<PullRequest> pullRequests = _gitHubClient.PullRequest.GetAllForRepository(repository.Id).Result;
+                PrintOpenPullRequests(repo, pullRequests);
+                Thread.Sleep(300);
+            }
+        }
+        
+        [ConsoleAction]
         public void ListNewIssuesAndPullRequestsWithinLastEightDays()
         {
             string githubReposListFile = "github-repos.yml";
             
             RepoListDescriptor repoList = BamProfile.LoadYamlData<RepoListDescriptor>(githubReposListFile);
-
+            
             foreach (string repo in repoList.Repositories)
             {
                 Message.PrintLine("**** {0} ****", ConsoleColor.DarkCyan, repo);
@@ -49,11 +70,21 @@ namespace Bam.Net.System.ConsoleActions
             }
         }
 
+        private void PrintOpenPullRequests(string repo, IReadOnlyList<PullRequest> pullRequests)
+        {
+            PrintPullRequests(repo, pullRequests, OpenPullRequestPredicate);
+        }
+        
         private void PrintNewPullRequests(string repo, IReadOnlyList<PullRequest> pullRequests)
+        {
+            PrintPullRequests(repo, pullRequests, NewPullRequestPredicate);
+        }
+        
+        private void PrintPullRequests(string repo, IReadOnlyList<PullRequest> pullRequests, Func<PullRequest, bool> pullRequestPredicate)
         {
             Message.PrintLine("\t***** Pull Requests *****", ConsoleColor.White, repo);
             List<PullRequest> pullRequestList = pullRequests
-                .Where(NewPullRequestPredicate).ToList();
+                .Where(pullRequestPredicate).ToList();
             if (pullRequestList.Count != 0)
             {
                 foreach (PullRequest pullRequest in pullRequestList)
@@ -64,6 +95,7 @@ namespace Bam.Net.System.ConsoleActions
                         FormatDate(pullRequest.CreatedAt));
                     Message.PrintLine("\t\t\t{0}", ConsoleColor.White, pullRequest.Title);
                     Message.PrintLine("\t\t{0}", ConsoleColor.DarkBlue, pullRequest.Url);
+                    Message.PrintLine("\t\thuman url: {0}", ConsoleColor.DarkCyan, HumanUrl(pullRequest.Url));
                     Message.PrintLine("\t\t*** Labels ***", ConsoleColor.DarkYellow);
                     PrintLabels(pullRequest);
                 }
@@ -73,12 +105,22 @@ namespace Bam.Net.System.ConsoleActions
                 Message.PrintLine("\t\tNo new pull requests for: {0}", ConsoleColor.Yellow, repo);
             }
         }
+
+        private void PrintOpenIssues(string repo, IReadOnlyList<Issue> issues)
+        {
+            PrintIssues(repo, issues, OpenIssuePredicate);
+        }
         
         private void PrintNewIssues(string repo, IReadOnlyList<Issue> issues)
         {
+            PrintIssues(repo, issues, NewIssuePredicate);
+        }
+        
+        private void PrintIssues(string repo, IReadOnlyList<Issue> issues, Func<Issue, bool> issuePredicate)
+        {
             Message.PrintLine("\t***** Issues *****", ConsoleColor.DarkBlue);
             List<Issue> issuesList = issues
-                .Where(NewIssuePredicate).ToList();
+                .Where(issuePredicate).ToList();
             if (issuesList.Count != 0)
             {
                 foreach (Issue issue in issuesList)
@@ -89,6 +131,7 @@ namespace Bam.Net.System.ConsoleActions
                         FormatDate(issue.CreatedAt));
                     Message.PrintLine("\t\t\t{0}", ConsoleColor.DarkBlue, issue.Title);
                     Message.PrintLine("\t\t{0}", ConsoleColor.DarkBlue, issue.Url);
+                    Message.PrintLine("\t\thuman url: {0}", ConsoleColor.DarkCyan, HumanUrl(issue.Url));
                     Message.PrintLine("\t\t*** Labels ***", ConsoleColor.DarkYellow);
                     PrintLabels(issue);
                 }
@@ -99,6 +142,13 @@ namespace Bam.Net.System.ConsoleActions
             }
         }
 
+        private string HumanUrl(string url)
+        {
+            Uri input = new Uri(url);
+            string pathAndQuery = input.PathAndQuery.TruncateFront("/repos/".Length);
+            return new Uri($"{input.Scheme}://github.com/{pathAndQuery}").ToString();
+        }
+        
         private void PrintLabels(PullRequest pullRequest)
         {
             PrintLabels(pullRequest.Labels);
@@ -121,6 +171,11 @@ namespace Bam.Net.System.ConsoleActions
                 Message.PrintLine("\t\t{0}", ConsoleColor.DarkYellow, label.Name);
             }
         }
+
+        private bool OpenPullRequestPredicate(PullRequest pullRequest)
+        {
+            return pullRequest.State == ItemState.Open;
+        }
         
         private bool NewPullRequestPredicate(PullRequest pullRequest)
         {
@@ -128,6 +183,11 @@ namespace Bam.Net.System.ConsoleActions
             DateTime created = pullRequest.CreatedAt.DateTime;
 
             return created > eightDaysAgo;
+        }
+
+        private bool OpenIssuePredicate(Issue issue)
+        {
+            return issue.State == ItemState.Open;
         }
         
         private bool NewIssuePredicate(Issue issue)
