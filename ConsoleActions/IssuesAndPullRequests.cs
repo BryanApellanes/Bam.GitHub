@@ -89,21 +89,26 @@ namespace Bam.Net.System.ConsoleActions
             {
                 foreach (PullRequest pullRequest in pullRequestList)
                 {
-                    Message.PrintLine("\t\t#{0}: Assigned to {1}: Created At {2}", ConsoleColor.White, 
-                        pullRequest.Number,
-                        pullRequest.Assignee?.Login ?? "(Not Assigned)",
-                        FormatDate(pullRequest.CreatedAt));
-                    Message.PrintLine("\t\t\t{0}", ConsoleColor.White, pullRequest.Title);
-                    Message.PrintLine("\t\t{0}", ConsoleColor.DarkBlue, pullRequest.Url);
-                    Message.PrintLine("\t\thuman url: {0}", ConsoleColor.DarkCyan, HumanUrl(pullRequest.Url));
-                    Message.PrintLine("\t\t*** Labels ***", ConsoleColor.DarkYellow);
-                    PrintLabels(pullRequest);
+                    PrintPullRequest(pullRequest);
                 }
             }
             else
             {
                 Message.PrintLine("\t\tNo new pull requests for: {0}", ConsoleColor.Yellow, repo);
             }
+        }
+
+        private void PrintPullRequest(PullRequest pullRequest)
+        {
+            Message.PrintLine("\t\t#{0}: Assigned to {1}: Created At {2}", ConsoleColor.White,
+                pullRequest.Number,
+                pullRequest.Assignee?.Login ?? "(Not Assigned)",
+                FormatDate(pullRequest.CreatedAt));
+            Message.PrintLine("\t\t\t{0}", ConsoleColor.White, pullRequest.Title);
+            Message.PrintLine("\t\t{0}", ConsoleColor.DarkBlue, pullRequest.Url);
+            Message.PrintLine("\t\thuman url: {0}", ConsoleColor.DarkCyan, HumanUrl(pullRequest.Url));
+            Message.PrintLine("\t\t*** Labels ***", ConsoleColor.DarkYellow);
+            PrintLabels(pullRequest);
         }
 
         private void PrintOpenIssues(string repo, IReadOnlyList<Issue> issues)
@@ -125,21 +130,26 @@ namespace Bam.Net.System.ConsoleActions
             {
                 foreach (Issue issue in issuesList)
                 {
-                    Message.PrintLine("\t\t#{0}: Assigned to {1}: Created At {2}", ConsoleColor.DarkBlue, 
-                        issue.Number,
-                        issue.Assignee?.Login ?? "(Not Assigned)",
-                        FormatDate(issue.CreatedAt));
-                    Message.PrintLine("\t\t\t{0}", ConsoleColor.DarkBlue, issue.Title);
-                    Message.PrintLine("\t\t{0}", ConsoleColor.DarkBlue, issue.Url);
-                    Message.PrintLine("\t\thuman url: {0}", ConsoleColor.DarkCyan, HumanUrl(issue.Url));
-                    Message.PrintLine("\t\t*** Labels ***", ConsoleColor.DarkYellow);
-                    PrintLabels(issue);
+                    PrintIssue(issue);
                 }
             }
             else
             {
                 Message.PrintLine("\t\tNo new issues for: {0}", ConsoleColor.Yellow, repo);
             }
+        }
+
+        private void PrintIssue(Issue issue)
+        {
+            Message.PrintLine("\t\t#{0}: Assigned to {1}: Created At {2}", ConsoleColor.DarkBlue,
+                issue.Number,
+                issue.Assignee?.Login ?? "(Not Assigned)",
+                FormatDate(issue.CreatedAt));
+            Message.PrintLine("\t\t\t{0}", ConsoleColor.DarkBlue, issue.Title);
+            Message.PrintLine("\t\t{0}", ConsoleColor.DarkBlue, issue.Url);
+            Message.PrintLine("\t\thuman url: {0}", ConsoleColor.DarkCyan, HumanUrl(issue.Url));
+            Message.PrintLine("\t\t*** Labels ***", ConsoleColor.DarkYellow);
+            PrintLabels(issue);
         }
 
         private string HumanUrl(string url)
