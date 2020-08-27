@@ -11,7 +11,7 @@ using Octokit;
 
 namespace Bam.Net.System.ConsoleActions
 {
-    public class IssuesAndPullRequests
+    public class GitHubItems
     {
         private static readonly GitHubClient _gitHubClient = CreateClient();
         
