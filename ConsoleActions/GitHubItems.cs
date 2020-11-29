@@ -2,12 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 using Bam.GitHub;
 using Bam.GitHub.Data;
 using Bam.Net.CommandLine;
+using Bam.Net.Data.Repositories;
 using Octokit;
+using Label = Octokit.Label;
+using ProductHeaderValue = Octokit.ProductHeaderValue;
+using Repository = Octokit.Repository;
 
 namespace Bam.Net.System.ConsoleActions
 {
