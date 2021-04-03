@@ -6,10 +6,9 @@ using System.Net.Http.Headers;
 using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
-using Bam.GitHub;
-using Bam.GitHub.Data;
 using Bam.Net.CommandLine;
 using Bam.Net.Data.Repositories;
+using Bam.Net.IssueTracking.Data;
 using Octokit;
 using Label = Octokit.Label;
 using ProductHeaderValue = Octokit.ProductHeaderValue;
@@ -43,13 +42,13 @@ namespace Bam.Net.System.ConsoleActions
         {
             string githubReposListFile = "github-repos.yml";
             
-            RepoListDescriptor repoList = BamProfile.LoadYamlData<RepoListDescriptor>(githubReposListFile);
+            OwnedRepoListData ownedRepoList = BamProfile.LoadYamlData<OwnedRepoListData>(githubReposListFile);
             
-            foreach (string repo in repoList.Repositories)
+            foreach (string repo in ownedRepoList.Repositories)
             {
                 Message.PrintLine("**** {0} ****", ConsoleColor.DarkCyan, repo);
-                Repository repository = _gitHubClient.Repository.Get(repoList.Owner, repo).Result;
-                IReadOnlyList<Issue> issues = _gitHubClient.Issue.GetAllForRepository(repository.Id).Result;
+                Repository repository = _gitHubClient.Repository.Get(ownedRepoList.Owner, repo).Result;
+                IReadOnlyList<Octokit.Issue> issues = _gitHubClient.Issue.GetAllForRepository(repository.Id).Result;
                 PrintOpenIssues(repo, issues);
                 IReadOnlyList<PullRequest> pullRequests = _gitHubClient.PullRequest.GetAllForRepository(repository.Id).Result;
                 PrintOpenPullRequests(repo, pullRequests);
@@ -62,13 +61,13 @@ namespace Bam.Net.System.ConsoleActions
         {
             string githubReposListFile = "github-repos.yml";
             
-            RepoListDescriptor repoList = BamProfile.LoadYamlData<RepoListDescriptor>(githubReposListFile);
+            OwnedRepoListData ownedRepoList = BamProfile.LoadYamlData<OwnedRepoListData>(githubReposListFile);
             
-            foreach (string repo in repoList.Repositories)
+            foreach (string repo in ownedRepoList.Repositories)
             {
                 Message.PrintLine("**** {0} ****", ConsoleColor.DarkCyan, repo);
-                Repository repository = _gitHubClient.Repository.Get(repoList.Owner, repo).Result;
-                IReadOnlyList<Issue> issues = _gitHubClient.Issue.GetAllForRepository(repository.Id).Result;
+                Repository repository = _gitHubClient.Repository.Get(ownedRepoList.Owner, repo).Result;
+                IReadOnlyList<Octokit.Issue> issues = _gitHubClient.Issue.GetAllForRepository(repository.Id).Result;
                 PrintNewIssues(repo, issues);
                 IReadOnlyList<PullRequest> pullRequests = _gitHubClient.PullRequest.GetAllForRepository(repository.Id).Result;
                 PrintNewPullRequests(repo, pullRequests);
@@ -117,24 +116,24 @@ namespace Bam.Net.System.ConsoleActions
             PrintLabels(pullRequest);
         }
 
-        private void PrintOpenIssues(string repo, IReadOnlyList<Issue> issues)
+        private void PrintOpenIssues(string repo, IReadOnlyList<Octokit.Issue> issues)
         {
             PrintIssues(repo, issues, OpenIssuePredicate);
         }
         
-        private void PrintNewIssues(string repo, IReadOnlyList<Issue> issues)
+        private void PrintNewIssues(string repo, IReadOnlyList<Octokit.Issue> issues)
         {
             PrintIssues(repo, issues, NewIssuePredicate);
         }
         
-        private void PrintIssues(string repo, IReadOnlyList<Issue> issues, Func<Issue, bool> issuePredicate)
+        private void PrintIssues(string repo, IReadOnlyList<Octokit.Issue> issues, Func<Octokit.Issue, bool> issuePredicate)
         {
             Message.PrintLine("\t***** Issues *****", ConsoleColor.DarkBlue);
-            List<Issue> issuesList = issues
+            List<Octokit.Issue> issuesList = issues
                 .Where(issuePredicate).ToList();
             if (issuesList.Count != 0)
             {
-                foreach (Issue issue in issuesList)
+                foreach (Octokit.Issue issue in issuesList)
                 {
                     PrintIssue(issue);
                 }
@@ -145,7 +144,7 @@ namespace Bam.Net.System.ConsoleActions
             }
         }
 
-        private void PrintIssue(Issue issue)
+        private void PrintIssue(Octokit.Issue issue)
         {
             Message.PrintLine("\t\t#{0}: Assigned to {1}: Created At {2}", ConsoleColor.DarkBlue,
                 issue.Number,
@@ -170,7 +169,7 @@ namespace Bam.Net.System.ConsoleActions
             PrintLabels(pullRequest.Labels);
         }
 
-        private void PrintLabels(Issue issue)
+        private void PrintLabels(Octokit.Issue issue)
         {
             PrintLabels(issue.Labels);
         }
@@ -201,12 +200,12 @@ namespace Bam.Net.System.ConsoleActions
             return created > eightDaysAgo;
         }
 
-        private bool OpenIssuePredicate(Issue issue)
+        private bool OpenIssuePredicate(Octokit.Issue issue)
         {
             return issue.State == ItemState.Open;
         }
         
-        private bool NewIssuePredicate(Issue issue)
+        private bool NewIssuePredicate(Octokit.Issue issue)
         {
             DateTime eightDaysAgo = DateTime.Now.Subtract(TimeSpan.FromDays(8));
             DateTime created = issue.CreatedAt.DateTime;

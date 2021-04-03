@@ -4,6 +4,8 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net5.0</TargetFramework>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <AssemblyName>Bam.GitHub</AssemblyName>
+        <RootNamespace>Bam.Github</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

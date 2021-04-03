@@ -7,7 +7,7 @@ namespace Bam.GitHub
     {
         static void Main(string[] args)
         {
-            ExecuteMain(args);
+            ExecuteMainOrInteractive(args);
         }
     }
 }
