@@ -8,6 +8,14 @@
         <RootNamespace>Bam.Github</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutputPath>\opt\bam\build\bam.github\debug\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <OutputPath>\opt\bam\build\bam.github\release</OutputPath>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="Octokit" Version="0.48.0" />
     </ItemGroup>

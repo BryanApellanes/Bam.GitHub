@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bam.Net.Data.Repositories;
 
 namespace Bam.Github
 {
-    public class GitHubIssueComment : ITrackedIssueComment
+    public class GitHubIssueComment : AuditRepoData, ITrackedIssueComment
     {
         public GitHubIssueComment(IssueComment comment)
         {
@@ -38,7 +39,7 @@ namespace Bam.Github
         public DateTimeOffset CreatedAt { get; init; }
         public string Text { get; init; }
 
-        public object ToCommentData()
+        public CommentData ToCommentData()
         {
             return new CommentData()
             {                

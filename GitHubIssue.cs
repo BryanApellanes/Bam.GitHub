@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bam.Net.Data.Repositories;
 
 namespace Bam.Github
 {
-    public class GitHubIssue : ITrackedIssue
+    public class GitHubIssue : AuditRepoData, ITrackedIssue
     {
         public GitHubIssue(Issue githubIssue, long? repoId = null)
         {

@@ -59,6 +59,16 @@ namespace Bam.Github
             return results;
         }
 
+        public Task<ITrackedIssue> CreateIssueAsync(string externalRepoId, string title, string body)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ITrackedIssueComment> AddCommentAsync(ITrackedIssue issue, string commenter, string commentText)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<List<ITrackedIssue>> GetAllIssuesAsync()
         {
             OwnedRepoListData ownedRepoList = _repoListDescriptorProvider.GetRepoListDescriptor();
@@ -153,6 +163,12 @@ namespace Bam.Github
             {
                 _logger.AddEntry("Error setting rate limit info: {0}", ex, ex.Message);
             }
+        }
+
+        public int Sla { get; set; }
+        public bool SlaWasMet(ITrackedIssue trackedIssue)
+        {
+            throw new NotImplementedException();
         }
     }
 }
